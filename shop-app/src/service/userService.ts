@@ -7,7 +7,7 @@ function listenUsers(q: ReturnType<typeof query>, cb: (users: UserProfile[]) => 
   return onSnapshot(
     q,
     (snap) =>
-      cb(snap.docs.map((d) => ({ uid: d.id, ...d.data() } as UserProfile))),
+      cb(snap.docs.map((d) => ({ uid: d.id, ...(d.data() as object) } as UserProfile))),
     (e) => console.warn('listenUsers', e.message)
   );
 }

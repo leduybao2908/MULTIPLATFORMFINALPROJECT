@@ -48,11 +48,16 @@ export default function ProductListScreen({ navigation }: any) {
   );
 
   const categories = useMemo(() => {
-    const count = new Map<string, number>();
-    products.forEach((p) => count.set(p.category, (count.get(p.category) ?? 0) + 1));
+    const agg = new Map<string, { count: number; image: string | null }>();
+    products.forEach((p) => {
+      const cur = agg.get(p.category) ?? { count: 0, image: null };
+      cur.count += 1;
+      if (!cur.image && p.images?.[0]) cur.image = p.images[0];
+      agg.set(p.category, cur);
+    });
     return [
-      { key: 'all', label: 'Tất cả', count: products.length },
-      ...[...count.entries()].map(([key, n]) => ({ key, label: key, count: n })),
+      { key: 'all', label: 'Tất cả', count: products.length, image: null },
+      ...[...agg.entries()].map(([key, v]) => ({ key, label: key, count: v.count, image: v.image })),
     ];
   }, [products]);
 
