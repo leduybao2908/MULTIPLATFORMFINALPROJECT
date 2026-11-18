@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
+import { ScrollView, View, Text, StyleSheet, Alert } from 'react-native';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../service/firebase';
 import { useAuth } from '../../context/AuthContext';
+import { can } from '../../utils/permissions';
 import AppButton from '../../components/AppButton';
 
 const ROLE_LABEL: Record<string, string> = {
@@ -11,8 +12,8 @@ const ROLE_LABEL: Record<string, string> = {
   admin: 'Quản trị viên',
 };
 
-export default function ProfileScreen() {
-  const { user, logout } = useAuth();
+export default function ProfileScreen({ navigation }: any) {
+  const { user, role, logout } = useAuth();
   const [loading, setLoading] = useState(false);
   if (!user) return null;
 
@@ -29,7 +30,7 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.avatar}>
         <Text style={styles.avatarText}>{user.name?.charAt(0).toUpperCase()}</Text>
       </View>
@@ -44,15 +45,28 @@ export default function ProfileScreen() {
         <Text style={styles.pending}>Yêu cầu làm người bán đang chờ duyệt</Text>
       )}
 
+      <AppButton title="Đơn mua của tôi" onPress={() => navigation.navigate('MyOrders')} />
+
+      {can.manageProduct(role) && (
+        <>
+          <AppButton title="Đơn bán (người bán)" onPress={() => navigation.navigate('SellerOrders')} />
+          <AppButton title="Thống kê bán hàng" onPress={() => navigation.navigate('SellerStats')} />
+        </>
+      )}
+
+      {role === 'admin' && (
+        <AppButton title="Duyệt người bán" onPress={() => navigation.navigate('AdminSellers')} />
+      )}
+
       <View style={{ marginTop: 24 }}>
         <AppButton title="Đăng xuất" variant="danger" onPress={logout} />
       </View>
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, alignItems: 'stretch' },
+  container: { padding: 20 },
   avatar: {
     width: 88, height: 88, borderRadius: 44, backgroundColor: '#2563eb',
     alignSelf: 'center', alignItems: 'center', justifyContent: 'center', marginTop: 16,
@@ -61,5 +75,5 @@ const styles = StyleSheet.create({
   name: { fontSize: 22, fontWeight: '700', textAlign: 'center', marginTop: 12 },
   email: { color: '#666', textAlign: 'center', marginTop: 2 },
   role: { textAlign: 'center', marginVertical: 12, fontSize: 16 },
-  pending: { textAlign: 'center', color: '#b45309', marginTop: 8 },
+  pending: { textAlign: 'center', color: '#b45309', marginVertical: 8 },
 });

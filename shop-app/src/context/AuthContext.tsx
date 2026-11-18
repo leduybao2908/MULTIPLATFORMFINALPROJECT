@@ -31,28 +31,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const unsubAuth = onAuthStateChanged(auth, (fbUser) => {
       unsubProfile?.();
+
       if (!fbUser) {
         setUser(null);
         setLoading(false);
         return;
       }
+
       // Lắng nghe hồ sơ realtime: admin đổi role thì app tự cập nhật
       unsubProfile = onSnapshot(
         doc(db, 'users', fbUser.uid),
         (snap) => {
           const data = snap.data();
-          if (data) {
-            if (data.isBanned) {
-              signOut(auth);
-              return;
-            }
-            setUser({ uid: fbUser.uid, ...(data as Omit<UserProfile, 'uid'>) });
-          } else {
-            setUser(null);
+
+          if (!data) {
+            // Có tài khoản Auth nhưng chưa có hồ sơ: tự tạo.
+            // Sau khi tạo xong, onSnapshot sẽ chạy lại và vào nhánh bên dưới.
+            setDoc(doc(db, 'users', fbUser.uid), {
+              name: fbUser.displayName ?? fbUser.email?.split('@')[0] ?? 'Người dùng',
+              email: fbUser.email,
+              role: 'buyer',
+              sellerStatus: 'none',
+              isBanned: false,
+              createdAt: serverTimestamp(),
+            }).catch((e) => {
+              console.warn('create profile', e.message);
+              setLoading(false);
+            });
+            return;
           }
+
+          if (data.isBanned) {
+            signOut(auth);
+            return;
+          }
+
+          setUser({ uid: fbUser.uid, ...(data as Omit<UserProfile, 'uid'>) });
           setLoading(false);
         },
-        () => setLoading(false)
+        (e) => {
+          console.warn('profile listener', e.message);
+          setLoading(false);
+        }
       );
     });
 
@@ -69,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const register = async (name: string, email: string, password: string) => {
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     await updateProfile(cred.user, { displayName: name });
+    // Nếu bước này lỗi, đoạn tự tạo hồ sơ ở trên sẽ bù lại
     await setDoc(doc(db, 'users', cred.user.uid), {
       name,
       email,

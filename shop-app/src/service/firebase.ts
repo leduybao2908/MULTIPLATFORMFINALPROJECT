@@ -1,7 +1,7 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
-// @ts-ignore: một số phiên bản firebase thiếu type cho getReactNativePersistence
+// @ts-ignore
 import { initializeAuth, getAuth, getReactNativePersistence } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
+import { initializeFirestore, getFirestore } from 'firebase/firestore';
 import { getStorage } from 'firebase/storage';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -16,7 +16,6 @@ const firebaseConfig = {
 
 const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 
-// Giữ đăng nhập sau khi tắt app. try/catch để không lỗi khi hot reload.
 let authInstance;
 try {
   authInstance = initializeAuth(app, {
@@ -26,6 +25,13 @@ try {
   authInstance = getAuth(app);
 }
 
+let dbInstance;
+try {
+  dbInstance = initializeFirestore(app, { experimentalForceLongPolling: true });
+} catch {
+  dbInstance = getFirestore(app);
+}
+
 export const auth = authInstance;
-export const db = getFirestore(app);
+export const db = dbInstance;
 export const storage = getStorage(app);

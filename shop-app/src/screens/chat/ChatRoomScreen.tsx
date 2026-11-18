@@ -41,8 +41,12 @@ export default function ChatRoomScreen({ route }: any) {
     if (!t) return;
     setText('');
     try {
-      await sendMessage(chatId, user.uid, t);
-    } catch (e: any) {
+await sendMessage(
+  chatId,
+  { uid: user.uid, name: user.name },
+  { uid: otherId, name: otherName },
+  t
+);    } catch (e: any) {
       console.warn('sendMessage', e.message);
     }
   };
@@ -91,4 +95,4 @@ const styles = StyleSheet.create({
   inputRow: { flexDirection: 'row', padding: 8, gap: 8, borderTopWidth: StyleSheet.hairlineWidth, borderColor: '#ccc', backgroundColor: '#fff' },
   input: { flex: 1, borderWidth: 1, borderColor: '#d1d5db', borderRadius: 20, paddingHorizontal: 14, paddingVertical: 8 },
   send: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#2563eb', alignItems: 'center', justifyContent: 'center' },
-});
+});     
