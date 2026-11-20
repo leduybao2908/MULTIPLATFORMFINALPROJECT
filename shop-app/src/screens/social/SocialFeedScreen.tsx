@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, FlatList, Text, Pressable, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, FlatList, Text, Pressable, ActivityIndicator, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { listenPosts, toggleLike, deletePost } from '../../service/postService';
@@ -11,6 +11,8 @@ import { Post, PostProduct } from '../../types';
 
 export default function SocialFeedScreen({ navigation }: any) {
   const { user, role } = useAuth();
+  const { width } = useWindowDimensions();
+  const isWide = width >= 768;
   const [posts, setPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -92,7 +94,10 @@ export default function SocialFeedScreen({ navigation }: any) {
       <FlatList
         data={posts}
         keyExtractor={(p) => p.id}
-        contentContainerStyle={{ paddingBottom: 90 }}
+        contentContainerStyle={[
+          { paddingBottom: 90 },
+          isWide && { maxWidth: 720, width: '100%', alignSelf: 'center' },
+        ]}
         ListHeaderComponent={Composer}
         ListEmptyComponent={
           <View style={styles.emptyBox}>

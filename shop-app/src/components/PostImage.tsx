@@ -6,7 +6,8 @@ type Props = { uri: string; onPress: () => void };
 const SIDE_MARGIN = 20; // lề ngoài của thẻ bài viết
 const CARD_PADDING = 28; // padding trong thẻ
 const WIDTH_RATIO = 0.7; // tỉ lệ chiều ngang ảnh so với khung bài
-const MAX_IMAGE_WIDTH = 380;
+const MAX_IMAGE_WIDTH = 380; // mobile
+const MAX_IMAGE_WIDTH_WIDE = 300; // web / màn hình rộng — ảnh nhỏ hơn
 
 export default function PostImage({ uri, onPress }: Props) {
   const { width: screenW } = useWindowDimensions();
@@ -27,7 +28,8 @@ export default function PostImage({ uri, onPress }: Props) {
   }, [uri]);
 
   const inner = Math.min(screenW, 600) - SIDE_MARGIN - CARD_PADDING;
-  const width = Math.min(inner * WIDTH_RATIO, MAX_IMAGE_WIDTH);
+  const maxWidth = screenW >= 768 ? MAX_IMAGE_WIDTH_WIDE : MAX_IMAGE_WIDTH;
+  const width = Math.min(inner * WIDTH_RATIO, maxWidth);
 
   // Giới hạn chiều cao để ảnh quá dài/quá bẹt không phá bố cục
   const height = Math.min(Math.max(width / ratio, width * 0.55), width * 1.5);
